@@ -21,11 +21,9 @@ void KalmanFilter::Init(VectorXd &x_in, MatrixXd &P_in, MatrixXd &F_in,
   Q_ = Q_in;
 }
 
-/**
- * Updates filter state based on prediction (no measurements).
- */
 void KalmanFilter::Predict() {
-    auto u = VectorXd(x_.rows());
+    // u = external motion, assume always zero for now
+    auto u = VectorXd::Zero(x_.rows());
     // code originally from "Lesson 5: Lidar and Radar Fusion with Kalman Filters"
 
     // KF Prediction step
