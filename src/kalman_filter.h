@@ -5,7 +5,7 @@
 class KalmanFilter {
 public:
 
-  // state vector
+  // state vector (object position and velocity)
   Eigen::VectorXd x_;
 
   // state covariance matrix
@@ -17,7 +17,7 @@ public:
   // process covariance matrix
   Eigen::MatrixXd Q_;
 
-  // measurement matrix
+  // measurement matrix, projects x into measurement space (e.g. discards velocity for lidar)
   Eigen::MatrixXd H_;
 
   // measurement covariance matrix
