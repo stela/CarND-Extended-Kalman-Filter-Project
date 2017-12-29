@@ -1,4 +1,5 @@
 #include "kalman_filter.h"
+#include <iostream>
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
@@ -27,11 +28,35 @@ void KalmanFilter::Predict() {
   */
 }
 
+/**
+ * Update filter state based on new measurement z.
+ * @param z new measurement
+ */
 void KalmanFilter::Update(const VectorXd &z) {
-  /**
-  TODO:
-    * update the state by using Kalman Filter equations
-  */
+  auto I = MatrixXd::Identity(F_.cols(), F_.rows());
+  auto u = VectorXd(x_.rows());
+
+  // code originally from "Lesson 5: Lidar and Radar Fusion with Kalman Filters"
+
+  // KF Measurement update step
+  VectorXd y = z - H_ * x_;
+  MatrixXd Ht = H_.transpose();
+  MatrixXd S = H_ * P_ * Ht + R_;
+  // TODO instead of multiplying with inverse of S, faster and more stable to solve S x' = P Ht x
+  MatrixXd Si = S.inverse();
+  MatrixXd K =  P_ * Ht * Si;
+
+  // new state
+  x_ = x_ + (K * y);
+  P_ = (I - K * H_) * P_;
+
+  // KF Prediction step
+  x_ = F_ * x_ + u;
+  MatrixXd Ft = F_.transpose();
+  P_ = F_ * P_ * Ft + Q_;
+
+  std::cout << "x=" << std::endl <<  x_ << std::endl;
+  std::cout << "P=" << std::endl <<  P_ << std::endl;
 }
 
 void KalmanFilter::UpdateEKF(const VectorXd &z) {
