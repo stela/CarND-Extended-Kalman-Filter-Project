@@ -21,20 +21,28 @@ void KalmanFilter::Init(VectorXd &x_in, MatrixXd &P_in, MatrixXd &F_in,
   Q_ = Q_in;
 }
 
+/**
+ * Updates filter state based on prediction (no measurements).
+ */
 void KalmanFilter::Predict() {
-  /**
-  TODO:
-    * predict the state
-  */
+    auto u = VectorXd(x_.rows());
+    // code originally from "Lesson 5: Lidar and Radar Fusion with Kalman Filters"
+
+    // KF Prediction step
+    x_ = F_ * x_ + u;
+    MatrixXd Ft = F_.transpose();
+    P_ = F_ * P_ * Ft + Q_;
+
+    std::cout << "x=" << std::endl <<  x_ << std::endl;
+    std::cout << "P=" << std::endl <<  P_ << std::endl;
 }
 
 /**
- * Update filter state based on new measurement z.
+ * Updates filter state based on new measurement z.
  * @param z new measurement
  */
 void KalmanFilter::Update(const VectorXd &z) {
   auto I = MatrixXd::Identity(F_.cols(), F_.rows());
-  auto u = VectorXd(x_.rows());
 
   // code originally from "Lesson 5: Lidar and Radar Fusion with Kalman Filters"
 
@@ -49,14 +57,6 @@ void KalmanFilter::Update(const VectorXd &z) {
   // new state
   x_ = x_ + (K * y);
   P_ = (I - K * H_) * P_;
-
-  // KF Prediction step
-  x_ = F_ * x_ + u;
-  MatrixXd Ft = F_.transpose();
-  P_ = F_ * P_ * Ft + Q_;
-
-  std::cout << "x=" << std::endl <<  x_ << std::endl;
-  std::cout << "P=" << std::endl <<  P_ << std::endl;
 }
 
 void KalmanFilter::UpdateEKF(const VectorXd &z) {
