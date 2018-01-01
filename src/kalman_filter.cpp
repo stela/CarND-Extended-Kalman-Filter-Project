@@ -36,12 +36,11 @@ void KalmanFilter::Init(VectorXd &x_in, MatrixXd &P_in, MatrixXd &F_in,
  * @param delta_T Time between k and k+1 in s
  */
 void KalmanFilter::Predict() {
-    // u = external motion, assume always zero for now
-    auto u = VectorXd::Zero(x_.rows());
 
-    // code originally from "Lesson 5: Lidar and Radar Fusion with Kalman Filters"
+    // code originally from "Lesson 13: Laser measurements part 4"
     // KF Prediction step
-    x_ = F_ * x_ + u;
+    // Assuming no external motion "u" to add, assuming u is always zero for now
+    x_ = F_ * x_;
     MatrixXd Ft = F_.transpose();
     P_ = F_ * P_ * Ft + Q_;
 
@@ -56,18 +55,23 @@ void KalmanFilter::Predict() {
 void KalmanFilter::Update(const VectorXd &z) {
   auto I = MatrixXd::Identity(F_.cols(), F_.rows());
 
-  // code originally from "Lesson 5: Lidar and Radar Fusion with Kalman Filters"
-  // KF Measurement update step
-
-  VectorXd y = z - H_ * x_;     // measurement-space difference of measurement and prediction
+  // code originally from "Lesson 13: Laser measurements part 4"
+  // H matrix works for lidar (linear) but not for radar (polar coordinates), use h(x) function for radar,
+  // but still works after linearizing h(x), using e.g. first order Taylor expansion
+  VectorXd z_pred = H_ * x_;
+  VectorXd y = z - z_pred;  // measurement-space difference of measurement and prediction
   MatrixXd Ht = H_.transpose();
   MatrixXd S = H_ * P_ * Ht + R_;
   // TODO instead of multiplying with inverse of S, faster and more stable to solve S x' = P Ht x
   MatrixXd Si = S.inverse();
-  MatrixXd K =  P_ * Ht * Si;
+  MatrixXd PHt = P_ * Ht;
+  MatrixXd K = PHt * Si;
 
-  // new state
+
+  // new estimate
   x_ = x_ + (K * y);
+  long x_size = x_.size();
+  MatrixXd I = MatrixXd::Identity(x_size, x_size);
   P_ = (I - K * H_) * P_;
 }
 
