@@ -48,6 +48,8 @@ void KalmanFilter::Predict() {
     std::cout << "P=" << std::endl <<  P_ << std::endl;
 }
 
+// There's no need for a PredictEKF function, since the prediction model is linear
+
 /**
  * Updates the state by using standard Kalman Filter equations
  * @param z The measurement at k+1 (for lidar, only position, not velocity)
@@ -74,6 +76,8 @@ void KalmanFilter::Update(const VectorXd &z) {
   MatrixXd I = MatrixXd::Identity(x_size, x_size);
   P_ = (I - K * H_) * P_;
 }
+
+// Only radar (not lidar) updates have a non-linear model and require use of EKF. Lidar-updates are linear.
 
 /**
  * Updates the state by using Extended Kalman Filter equations
