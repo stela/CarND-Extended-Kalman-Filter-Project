@@ -7,9 +7,9 @@ using Eigen::VectorXd;
 // Please note that the Eigen library does not initialize 
 // VectorXd or MatrixXd objects with zeros upon creation.
 
-KalmanFilter::KalmanFilter() {}
+KalmanFilter::KalmanFilter() = default;
 
-KalmanFilter::~KalmanFilter() {}
+KalmanFilter::~KalmanFilter() = default;
 
 /**
  * Init Initializes Kalman filter
@@ -55,8 +55,6 @@ void KalmanFilter::Predict() {
  * @param z The measurement at k+1 (for lidar, only position, not velocity)
  */
 void KalmanFilter::Update(const VectorXd &z) {
-  auto I = MatrixXd::Identity(F_.cols(), F_.rows());
-
   // code originally from "Lesson 13: Laser measurements part 4"
   // H matrix works for lidar (linear) but not for radar (polar coordinates), use h(x) function for radar,
   // but still works after linearizing h(x), using e.g. first order Taylor expansion
