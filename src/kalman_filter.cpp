@@ -37,15 +37,16 @@ void KalmanFilter::Init(VectorXd &x_in, MatrixXd &P_in, MatrixXd &F_in,
  */
 void KalmanFilter::Predict() {
 
-    // code originally from "Lesson 13: Laser measurements part 4"
-    // KF Prediction step
-    // Assuming no external motion "u" to add, assuming u is always zero for now
-    x_ = F_ * x_;
-    MatrixXd Ft = F_.transpose();
-    P_ = F_ * P_ * Ft + Q_;
+  // code originally from "Lesson 13: Laser measurements part 4"
+  // KF Prediction step
+  // Assuming no external motion "u" to add, assuming u is always zero for now
+  x_ = F_ * x_;
+  MatrixXd Ft = F_.transpose();
+  // TODO Q_ is dependent on delta_T, see Lesson 15: 13 Laser m. part 4
+  P_ = F_ * P_ * Ft + Q_;
 
-    std::cout << "x=" << std::endl <<  x_ << std::endl;
-    std::cout << "P=" << std::endl <<  P_ << std::endl;
+  std::cout << "x=" << std::endl <<  x_ << std::endl;
+  std::cout << "P=" << std::endl <<  P_ << std::endl;
 }
 
 // There's no need for a PredictEKF function, since the prediction model is linear
@@ -78,12 +79,26 @@ void KalmanFilter::Update(const VectorXd &z) {
 // Only radar (not lidar) updates have a non-linear model and require use of EKF. Lidar-updates are linear.
 
 /**
- * Updates the state by using Extended Kalman Filter equations
+ * Updates the radar state by using Extended Kalman Filter equations
  * @param z The measurement at k+1
  */
 void KalmanFilter::UpdateEKF(const VectorXd &z) {
-  /**
-  TODO:
-    * update the state by using Extended Kalman Filter equations
-  */
+  // TODO Like the regular Update() except, TODO, use Hj instead of H
+
+  VectorXd z_pred = H_ * x_;
+  VectorXd y = z - z_pred;  // measurement-space difference of measurement and prediction
+  MatrixXd Ht = H_.transpose();
+  MatrixXd S = H_ * P_ * Ht + R_;
+  // TODO instead of multiplying with inverse of S, faster and more stable to solve S x' = P Ht x
+  MatrixXd Si = S.inverse();
+  MatrixXd PHt = P_ * Ht;
+  MatrixXd K = PHt * Si;
+
+
+  // new estimate
+  x_ = x_ + (K * y);
+  long x_size = x_.size();
+  MatrixXd I = MatrixXd::Identity(x_size, x_size);
+  P_ = (I - K * H_) * P_;
+
 }
