@@ -5,6 +5,7 @@
 
 class MeasurementPackage {
 public:
+  // timestamp, in microseconds
   long long timestamp_;
 
   enum SensorType{
