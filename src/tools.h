@@ -29,6 +29,7 @@ public:
   */
   MatrixXd CalculateJacobian(const VectorXd& x_state);
 
+  MatrixXd max_rmse;
 };
 
 #endif /* TOOLS_H_ */

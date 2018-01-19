@@ -42,11 +42,12 @@ void KalmanFilter::Predict() {
   // Assuming no external motion "u" to add, assuming u is always zero for now
   x_ = F_ * x_;
   MatrixXd Ft = F_.transpose();
-  // TODO Q_ is dependent on delta_T, see Lesson 15: 13 Laser m. part 4
+  // Q_ is dependent on delta_T, see Lesson 15: 13 Laser m. part 4
+  // but that's taken care of by FusionEKF before this method is called
   P_ = F_ * P_ * Ft + Q_;
 
-  std::cout << "x=" << std::endl <<  x_ << std::endl;
-  std::cout << "P=" << std::endl <<  P_ << std::endl;
+  // std::cout << "x=" << std::endl <<  x_ << std::endl;
+  // std::cout << "P=" << std::endl <<  P_ << std::endl;
 }
 
 // There's no need for a PredictEKF function, since the prediction model is linear
@@ -63,7 +64,7 @@ void KalmanFilter::Update(const VectorXd &z) {
   VectorXd y = z - z_pred;  // measurement-space difference of measurement and prediction
   MatrixXd Ht = H_.transpose();
   MatrixXd S = H_ * P_ * Ht + R_;
-  // TODO instead of multiplying with inverse of S, faster and more stable to solve S x' = P Ht x
+  // instead of multiplying with inverse of S, faster and more stable to solve S x' = P Ht x
   MatrixXd Si = S.inverse();
   MatrixXd PHt = P_ * Ht;
   MatrixXd K = PHt * Si;
@@ -80,27 +81,58 @@ void KalmanFilter::Update(const VectorXd &z) {
 
 // Only radar (not lidar) updates have a non-linear model and require use of EKF. Lidar-updates are linear.
 
+static double normalize_phi(double phi) {
+  while (phi > M_PI || phi < -M_PI) {
+    if (phi > M_PI) {
+      phi -= M_PI;
+    }
+    if (phi < -M_PI) {
+      phi += M_PI;
+    }
+  }
+  return phi;
+}
+
 /**
  * Updates the radar state by using Extended Kalman Filter equations
  * @param z The measurement at k+1
  */
 void KalmanFilter::UpdateEKF(const VectorXd &z) {
-  // TODO Like the regular Update() except, TODO, use Hj instead of H
+  // Like the regular Update() except when called, H_ is already assigned to the jacobian,
+  // and z_pred = h(x) needs to be calculated manually.
+  // Details in "Lesson 5: 14. Radar measurements"
 
-  VectorXd z_pred = H_ * x_;
+  double px = x_(0);
+  double py = x_(1);
+  double vx = x_(2);
+  double vy = x_(3);
+
+  double rho = sqrt(px*px + py*py);
+  double theta = atan2(py, px);
+  double ro_dot = (px*vx + py*vy)/rho;
+
+  VectorXd z_pred = VectorXd(3);
+  z_pred << rho, theta, ro_dot;
+
+  // the rest of the equations are like above in Update()...
   VectorXd y = z - z_pred;  // measurement-space difference of measurement and prediction
+  // normalize angle phi in y again here. Otherwise a "pirouette" is seen half-ways
+  y(1) = normalize_phi(y(1));
+
+
   MatrixXd Ht = H_.transpose();
   MatrixXd S = H_ * P_ * Ht + R_;
-  // TODO instead of multiplying with inverse of S, faster and more stable to solve S x' = P Ht x
+  // instead of multiplying with inverse of S, faster and more stable to solve S x' = P Ht x
   MatrixXd Si = S.inverse();
   MatrixXd PHt = P_ * Ht;
   MatrixXd K = PHt * Si;
 
-
-  // new estimate
+  // new state estimate
   x_ = x_ + (K * y);
   long x_size = x_.size();
   MatrixXd I = MatrixXd::Identity(x_size, x_size);
   P_ = (I - K * H_) * P_;
 
+  // Q&A video plus "Lesson 5: 7. Kalman F. Eq. part 2". contained a prediction-step here, but that was an accident, right?
 }
+
