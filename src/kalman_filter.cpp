@@ -69,11 +69,13 @@ void KalmanFilter::Update(const VectorXd &z) {
   MatrixXd K = PHt * Si;
 
 
-  // new estimate
+  // new state estimate
   x_ = x_ + (K * y);
   long x_size = x_.size();
   MatrixXd I = MatrixXd::Identity(x_size, x_size);
   P_ = (I - K * H_) * P_;
+
+  // Q&A video plus "Lesson 5: 7. Kalman F. Eq. part 2". contained a prediction-step here, but that was an accident, right?
 }
 
 // Only radar (not lidar) updates have a non-linear model and require use of EKF. Lidar-updates are linear.
