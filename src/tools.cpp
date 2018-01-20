@@ -54,6 +54,7 @@ VectorXd Tools::CalculateRMSE(const vector<VectorXd> &estimations,
   }
   if (updated) {
     cout << "New RMSE high! " << endl << max_rmse << endl;
+    cout << "Current RMSE: " << endl << rmse << endl;
   }
 
   // return the result

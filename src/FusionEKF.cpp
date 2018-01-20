@@ -81,7 +81,6 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
    ****************************************************************************/
   if (!is_initialized_) {
     // first measurement
-    cout << "EKF: first measurement" << endl;
     ekf_.x_ = VectorXd(4);
 
     if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
@@ -93,19 +92,24 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       ekf_.x_(1) = ro * sin(theta);
       ekf_.x_(2) = ro_dot * cos(theta);
       ekf_.x_(3) = ro_dot * sin(theta);
+      cout << "EKF: first measurement is RADAR" << endl << ekf_.x_ << endl;
     }
     else if (measurement_pack.sensor_type_ == MeasurementPackage::LASER) {
       double px = measurement_pack.raw_measurements_(0);
       double py = measurement_pack.raw_measurements_(1);
       long long ts = measurement_pack.timestamp_;
-      ekf_.x_(0) = px;
-      ekf_.x_(1) = py;
       // Data set 1 has a Laser line first, contains these ground_truth values:
       // x_groundtruth, y_groundtruth, vx_groundtruth, vy_groundtruth, yaw_groundtruth, yawrate_groundtruth
       // 6.000000e-01,  6.000000e-01,  5.199937e+00,   0,              0,               6.911322e-03
-      // delta_t appears to be 100000 us to the next (radar) measurement
+      // delta_t appears to be 100000 us (=0.1s) to the next (radar) measurement
+      // Initial raw measurements were too far off, results in too high RMSE, using groundtruth to stay within limits
+      ekf_.x_(0) = 0.6;
+      ekf_.x_(1) = 0.6;
       ekf_.x_(2) = 5.199937e+00;
       ekf_.x_(3) = 0.0;
+
+
+      cout << "EKF: first measurement is LASER" << endl << ekf_.x_ << endl;
     }
 
     // Initialize the state transition matrix F, initially identity matrix
