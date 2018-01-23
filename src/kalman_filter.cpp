@@ -65,6 +65,7 @@ void KalmanFilter::Update(const VectorXd &z) {
   MatrixXd Ht = H_.transpose();
   MatrixXd S = H_ * P_ * Ht + R_;
   // instead of multiplying with inverse of S, faster and more stable to solve S x' = P Ht x
+  // See https://eigen.tuxfamily.org/dox/group__TutorialLinearAlgebra.html
   MatrixXd Si = S.inverse();
   MatrixXd PHt = P_ * Ht;
   MatrixXd K = PHt * Si;
@@ -123,6 +124,7 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
   MatrixXd Ht = H_.transpose();
   MatrixXd S = H_ * P_ * Ht + R_;
   // instead of multiplying with inverse of S, faster and more stable to solve S x' = P Ht x
+  // See https://eigen.tuxfamily.org/dox/group__TutorialLinearAlgebra.html
   MatrixXd Si = S.inverse();
   MatrixXd PHt = P_ * Ht;
   MatrixXd K = PHt * Si;
