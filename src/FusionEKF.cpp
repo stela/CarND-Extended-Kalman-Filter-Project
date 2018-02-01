@@ -102,12 +102,11 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       // x_groundtruth, y_groundtruth, vx_groundtruth, vy_groundtruth, yaw_groundtruth, yawrate_groundtruth
       // 6.000000e-01,  6.000000e-01,  5.199937e+00,   0,              0,               6.911322e-03
       // delta_t appears to be 100000 us (=0.1s) to the next (radar) measurement
-      // Initial raw measurements were too far off, results in too high RMSE, "cheating" to remove errors at start
-      ekf_.x_(0) = px + 0.2877573;
-      ekf_.x_(1) = py + 0.0196602;
-      ekf_.x_(2) = 5.199937e+00;
+      // the RMSE will be very high for the first few measurements without "cheating", but let's ignore those ;-)
+      ekf_.x_(0) = px;
+      ekf_.x_(1) = py;
+      ekf_.x_(2) = 0.0;
       ekf_.x_(3) = 0.0;
-
 
       cout << "EKF: first measurement is LASER" << endl << ekf_.x_ << endl;
     }
